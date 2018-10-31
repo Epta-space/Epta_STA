@@ -1,0 +1,1 @@
+* tentativadecomunicacao - primeiro programa feito, arquitetado com base em um tutorial do youtube. Encontra-se 100 por cento funcional. na versão do visual studio de 2017
