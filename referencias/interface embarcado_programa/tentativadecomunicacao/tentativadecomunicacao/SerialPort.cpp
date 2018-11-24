@@ -14,18 +14,18 @@ SerialPort::SerialPort(char *portName)
 		NULL);
 	if (this->handler == INVALID_HANDLE_VALUE) {
 		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
-			printf("ERROR: Handle was not attached. Reason: %s not available\n", portName);
+			printf("vishe: Identificador nao anexado. BO: %s nao disponivel\n", portName);
 		}
 		else
 		{
-			printf("ERROR!!!");
+			printf("ERRO!!!");
 		}
 	}
 	else {
 		DCB dcbSerialParameters = { 0 };
 
 		if (!GetCommState(this->handler, &dcbSerialParameters)) {
-			printf("failed to get current serial parameters");
+			printf("BO: falha na obtenção dos parâmetros da borta SERIAL\n");
 		}
 		else {
 			dcbSerialParameters.BaudRate = CBR_9600;
@@ -36,7 +36,7 @@ SerialPort::SerialPort(char *portName)
 
 			if (!SetCommState(handler, &dcbSerialParameters))
 			{
-				printf("ALERT: could not set Serial port parameters\n");
+				printf("ALERTA: Nao se pode setar parametros de porta serial\n");
 			}
 			else {
 				this->connected = true;
