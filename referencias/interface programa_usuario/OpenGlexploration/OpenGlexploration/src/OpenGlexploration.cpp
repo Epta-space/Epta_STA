@@ -1,6 +1,14 @@
 #include<GL/glew.h>
 #include<GLFW/glfw3.h>
 #include<iostream> 
+#include<string>
+#include<stdlib.h>
+#include"SerialPort.h"
+#include <stdio.h>
+
+
+char output[MAX_DATA_LENGTH];
+char port[] = "COM9";
 
 
 // Recebe o codigo fonte e o tipo de shader. (tenta-se evitar o uso de types do OPENGL)
@@ -56,105 +64,154 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 // Programa principal, com o loop de impreção
 int main(void)
 {
-	GLFWwindow* window;                                                     // Declara-se uma janela1
-	
-	/* Initialize the library */
-	if (!glfwInit())
-		return -1;
+	SerialPort arduino(port);
 
-	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);         // Cria-se uma janela sob condições específicas.
-	if (!window)
-	{
-		glfwTerminate();
-		return -1;                                                          // Se não foi possível criar a janela, retornar erro.
+	if (arduino.isConnected()) {
+		std::cout << "Deu bom, conectado!" << std::endl;
+	}
+	else {
+		std::cout << "Erro no nome de entrada" << std::endl;
 	}
 
+	while (arduino.isConnected()) {
+		GLFWwindow* window;                                                     // Declara-se uma janela1
 
-	/* Make the window's context current */
-	glfwMakeContextCurrent(window);                                         // Especifica-se a janela atual.
+		/* Initialize the library */
+		if (!glfwInit())
+			return -1;
 
-
-
-	if (glewInit() != GLEW_OK)                                              // Inicia-se GLEW em um contexto de janela. 
-		std::cout << "ERRO!" << std::endl;                                  // Checa-se se foi possível iniciar GLEW 
-
-	std::cout<<glGetString(GL_VERSION)<<std::endl;                          // Printa a versão do OPENGL.
-
-	float position[6] = {                                                   // Declara dados de posição.
-		-0.5f  , -0.5f,
-		 0.0f  ,  0.5f,
-		 0.5f  , -0.5f
-	};
+		/* Create a windowed mode window and its OpenGL context */
+		window = glfwCreateWindow(640, 480, "EPTA - STA", NULL, NULL);         // Cria-se uma janela sob condições específicas.
+		if (!window)
+		{
+			glfwTerminate();
+			return -1;                                                          // Se não foi possível criar a janela, retornar erro.
+		}
 
 
-
-	unsigned int buffer;                                                          // declara-se um buffer 
-	glGenBuffers(1, &buffer);                                                     // Gera-se esse buffer (quantidade 1)
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);                                        // seleciona-se ele para edição
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), position, GL_STATIC_DRAW);   // coloca-se dados dentro do buffer
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);        // Se declara um atributo dos dados (com formatação.
-	glEnableVertexAttribArray(0);                                                 // Se aciona essa atribuição
+		/* Make the window's context current */
+		glfwMakeContextCurrent(window);                                         // Especifica-se a janela atual.
 
 
 
-	std::string vertexShader =                                      // programa que será enviado para a placa de vídeo (vertex)
-		"#version 330 core\n"                                       // Para compatibilidade, versções antigas são melhores
-		"\n"
-		"layout(location = 0) in vec4 position;\n"                  // Refere-se ao index 0, da atribuição preveamente criada.
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = position ;\n"                             // necessita ser um vec4 , mesmo para códigos em 2 dimensões
-		"}\n";
+		if (glewInit() != GLEW_OK)                                              // Inicia-se GLEW em um contexto de janela. 
+			std::cout << "ERRO!" << std::endl;                                  // Checa-se se foi possível iniciar GLEW 
 
-	std::string fragmentShader =                                    // programa que será enviado para a placa de vídeo (fragment)
-		"#version 330 core\n"                                       // Para compatibilidade, versções antigas são melhores
-		"\n"
-		"out vec4 color;\n"                                         // declarou-se a cor.
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	color = vec4(0.5 , 0.5 , 0.0, 1.0);\n"                  // especifica a cor, no caso, vermelho. (r ,g , b , a)
-		"}\n";
+		std::cout << glGetString(GL_VERSION) << std::endl;                          // Printa a versão do OPENGL.
 
 
-	unsigned int shader = CreateShader(vertexShader, fragmentShader);     // Cria o programa na placa de vídeo.
-	glUseProgram(shader);                                                 // Inicializa o programa. 
+		float position[6] = {                                                   // Declara dados de posição.
+			-0.5f  , -0.5f,
+			 0.5f  ,  0.5f,
+			 0.5f  , -0.5f
+		};
 
 
 
-
-	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
-	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
-
-
-		glDrawArrays(GL_TRIANGLES, 0, 3);             // (comando de desenho) Modern OpenGl triangle. assiona-se o shader contextualizado.
+		unsigned int buffer;                                                          // declara-se um buffer 
+		glGenBuffers(1, &buffer);                                                     // Gera-se esse buffer (quantidade 1)
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);                                        // seleciona-se ele para edição
+		glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), position, GL_STATIC_DRAW);   // coloca-se dados dentro do buffer
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);        // Se declara um atributo dos dados (com formatação.
+		glEnableVertexAttribArray(0);                                                 // Se aciona essa atribuição
 
 
-		//glBegin(GL_TRIANGLES);
-		//glVertex2f(-0.5f , -0.5f);                  // Legacy opengl triangle. Ainda sim usa nosso shader, mas não nossa atribuição
-		//glVertex2f(0.0f  ,  0.5f);
-		//glVertex2f(0.5f, -0.5f);
-		//glEnd();
-		
+
+		std::string vertexShader =                                      // programa que será enviado para a placa de vídeo (vertex)
+			"#version 330 core\n"                                       // Para compatibilidade, versções antigas são melhores
+			"\n"
+			"layout(location = 0) in vec4 position;\n"                  // Refere-se ao index 0, da atribuição preveamente criada.
+			"\n"
+			"void main()\n"
+			"{\n"
+			"	gl_Position = position ;\n"                             // necessita ser um vec4 , mesmo para códigos em 2 dimensões
+			"}\n";
+
+		std::string fragmentShader =                                    // programa que será enviado para a placa de vídeo (fragment)
+			"#version 330 core\n"                                       // Para compatibilidade, versções antigas são melhores
+			"\n"
+			"out vec4 color;\n"                                         // declarou-se a cor.
+			"\n"
+			"void main()\n"
+			"{\n"
+			"	color = vec4(0.5 , 0.5 , 0.5, 0.5);\n"                  // especifica a cor, no caso, vermelho. (r ,g , b , a)
+			"}\n";
 
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		std::string fragmentShader2 =                                    // programa que será enviado para a placa de vídeo (fragment)
+			"#version 330 core\n"                                       // Para compatibilidade, versções antigas são melhores
+			"\n"
+			"out vec4 color;\n"                                         // declarou-se a cor.
+			"\n"
+			"void main()\n"
+			"{\n"
+			"	color = vec4(1.0 , 1.0 , 1.0, 1.0);\n"                  // especifica a cor, no caso, vermelho. (r ,g , b , a)
+			"}\n";
 
-		/* Poll for and process events */
-		glfwPollEvents();
+
+
+		unsigned int shader = CreateShader(vertexShader, fragmentShader);     // Cria o programa na placa de vídeo.
+		unsigned int shader2 = CreateShader(vertexShader, fragmentShader2);     // Cria o programa na placa de vídeo.
+
+
+
+
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			glUseProgram(shader);
+			glDrawArrays(GL_TRIANGLES, 0, 3);             // (comando de desenho) Modern OpenGl triangle. assiona-se o shader contextualizado.
+			glBegin(GL_TRIANGLES);
+			glVertex2f(-0.5f, -0.5f);                  // Legacy opengl triangle. Ainda sim usa nosso shader, mas não nossa atribuição
+			glVertex2f(0.5f, 0.5f);
+			glVertex2f(-0.5f, 0.5f);
+			glEnd();
+
+			std::string command = "O";
+			char *charArray = new char[command.size() + 1];
+			copy(command.begin(), command.end(), charArray);
+			charArray[command.size()] = '\n';
+			arduino.writeSerialPort(charArray, MAX_DATA_LENGTH);
+			arduino.readSerialPort(output, MAX_DATA_LENGTH);
+			float result = std::stof(output);
+			std::cout << result << std::endl;
+			delete[] charArray;
+
+
+
+			glUseProgram(shader2);
+
+
+			//glBegin(GL_TRIANGLES);
+			//glVertex2f(-0.5f, -0.5f);                  // Legacy opengl triangle. Ainda sim usa nosso shader, mas não nossa atribuição
+			//glVertex2f(0.0f, 0.5f);
+			//glVertex2f(result/300.f, -0.5f);
+			//glEnd();
+
+
+			glBegin(GL_POINTS);
+			glVertex3f((result / 300.f) - 0.48f, 0.0f , 0.0f);
+			glEnd();
+
+
+
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
+
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+
+
+
+		glDeleteProgram(shader);                           // Deleta-se o programa criado.
+
+		glfwTerminate();                                   // finali-se glfw.
+
 	}
-
-
-
-	glDeleteProgram(shader);                           // Deleta-se o programa criado.
-
-	glfwTerminate();                                   // finali-se glfw.
 
 	return 0;
 }
