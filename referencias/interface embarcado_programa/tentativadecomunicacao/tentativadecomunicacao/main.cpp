@@ -5,7 +5,7 @@
 #include"SerialPort.h"
 
 char output[MAX_DATA_LENGTH];
-char port[] = "COM9";
+char port[] = "\\\\.\\COM10";
 
 
 char *removeSpaces(char *str);
@@ -24,19 +24,9 @@ int main() {
 
 	while(arduino.isConnected()) {
 
-		std::string command = "O";
-		char *charArray = new char[command.size() + 1];
-		copy(command.begin(), command.end(), charArray);
-		charArray[command.size()] = '\n';
-
-		arduino.writeSerialPort(charArray, MAX_DATA_LENGTH);
 		arduino.readSerialPort(output, MAX_DATA_LENGTH);
 
-		float result = std::stof(output);
-
-		std::cout << result << std::endl;
-
-		delete[] charArray;
+		std::cout << output << std::endl;
 	
 	}
 
