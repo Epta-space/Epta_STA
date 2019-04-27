@@ -4,7 +4,7 @@
 
 
 - As duas pastas contem pequenos projetos paralelos utilizados para fins didaticos.
-- Tais projetos podem ter sido criados segundo cursos, video aulas e livre iniciativas. A descrição de cada um encontra-se nos arquivos de readme de cada qual.
+- Tais projetos podem ter sido criados segundo cursos, video aulas e livre iniciativas. A descrição de cada um encontra-se nos arquivos de readme de cada um.
 
 
 
